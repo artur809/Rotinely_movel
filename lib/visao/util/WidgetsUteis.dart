@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:rotinely/modelo/ItemListView.dart';
+import 'package:rotinely/modelo/objects/Tarefa.dart';
 import 'package:rotinely/visao/estilos/EstilosTexto.dart';
 import 'package:rotinely/visao/util/CustomIcons.dart';
 import 'package:rotinely/visao/telas/Splash1.dart';
@@ -136,21 +136,9 @@ class WidgetsUteis{
       ),
     );
   }
-  ListView listaTarefas(context, List<ItemListView> lista){
-    // return lista.map((item) {
-    //   return ListTile(
-    //     titleTextStyle: EstilosTextosCustomizado.subTitle(context),
-    //     subtitleTextStyle: EstilosTextosCustomizado.formField(context),
-    //     leading: CircleAvatar(
-    //       backgroundColor: Colors.white70,
-    //       child: Icon(Icons.monetization_on, color: Colors.blueGrey),
-    //     ),
-    //     title: Text(item.title),
-    //     subtitle: Text(item.subtitle),
-    //   );
-    // }).toList();
+  ListView listaTarefas(context, List<Tarefa> lista, {Function(Tarefa item)? aoTocarConcluido}){
     return ListView.builder(
-      itemCount: lista.length, // Número de itens na lista
+      itemCount: lista.length,
       itemBuilder: (BuildContext context, int index) {
         return ListTile(
           titleTextStyle: EstilosTextosCustomizado.subTitle(context),
@@ -168,22 +156,20 @@ class WidgetsUteis{
             ],
           ),
           trailing: Row(
-            mainAxisSize: MainAxisSize.min, // importante pra não ocupar toda a largura
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                lista[index].prioridade,
-                style: EstilosTextosCustomizado.formField2(context),
-              ),
+              Text(lista[index].prioridade, style: EstilosTextosCustomizado.formField2(context)),
               Checkbox(
                 value: lista[index].concluido,
-                onChanged: (value) {},
+                onChanged: (value) {
+                  if (aoTocarConcluido != null) aoTocarConcluido(lista[index]);
+                },
               ),
             ],
           ),
         );
       },
     );
-
   }
 
   Widget barraCircularProgresso() {

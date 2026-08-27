@@ -4,6 +4,8 @@ import 'package:rotinely/visao/telas/TelaPerfil.dart';
 import 'package:rotinely/visao/telas/TelaHome.dart';
 import 'package:rotinely/visao/util/WidgetsUteis.dart';
 import 'package:rotinely/visao/estilos/Tema.dart';
+import 'package:rotinely/controle/AutorizacaoController.dart';
+import 'package:rotinely/visao/telas/Login.dart';
 
 class Principal extends StatefulWidget {
   @override
@@ -62,9 +64,14 @@ class _PrincipalState extends State<Principal> {
       actions: [
         IconButton(
           icon: Icon(Icons.exit_to_app),
-          onPressed: () {
-            // Ação do botão
-            print("Sair");
+          onPressed: () async {
+            await AutorizacaoController.logout();
+            if (!context.mounted) return;
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => Login(title: 'Aplicativo')),
+                  (route) => false,
+            );
           },
         ),
       ],

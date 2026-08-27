@@ -9,6 +9,7 @@ import 'package:rotinely/visao/estilos/EstilosTexto.dart';
 import 'package:rotinely/visao/util/CustomIcons.dart';
 
 import 'package:rotinely/visao/telas/Splash1.dart';
+import 'package:rotinely/visao/telas/Splash2.dart';
 import 'package:rotinely/visao/util/SocialIcons.dart';
 
 //import 'package:mvc_pattern/mvc_pattern.dart';
@@ -17,6 +18,7 @@ import 'package:rotinely/main.dart';
 import 'package:rotinely/visao/util/WidgetsUteis.dart';
 
 import 'Login.dart';
+import 'package:rotinely/controle/AutorizacaoController.dart';
 
 //classe inicial da tela
 class Splash1 extends StatefulWidget {
@@ -30,12 +32,20 @@ class _Splash1State extends State<Splash1> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => Login(title: 'Aplicativo')),
-      );
+    Future.delayed(Duration(seconds: 3), () async {
+      await verificaLogin();
     });
+  }
+
+  Future<void> verificaLogin() async {
+    bool jaLogado = await AutorizacaoController.verificaAutorizacaoOffline();
+    if (!mounted) return; // evita erro se a tela já foi fechada nesse meio tempo
+
+    if (jaLogado) {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Splash2()));
+    } else {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Login(title: 'Aplicativo')));
+    }
   }
 //método de construção da interface da tela
   @override
