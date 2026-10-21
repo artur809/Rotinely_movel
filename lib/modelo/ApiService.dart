@@ -39,7 +39,7 @@ class ApiService {
     }
   }
 
-  //POST /api/login: devolve a Autorizacao com nome, data/hora e token
+  //POST /api/login: devolve a Autorizacao com nome, e-mail, data de cadastro, data/hora e token
   static Future<Autorizacao> login(String email, String senha) async {
     final resposta = await _enviar(() => http.post(
       Uri.parse('${ApiConfig.baseUrl}/login'),
@@ -50,10 +50,13 @@ class ApiService {
     if (resposta.statusCode == 200) {
       try {
         final dados = jsonDecode(utf8.decode(resposta.bodyBytes)) as Map<String, dynamic>;
+        final usuario = dados['usuario'] as Map<String, dynamic>;
         return Autorizacao(
-          usuario: dados['usuario']['nome'] ?? '',
+          usuario: usuario['nome'] ?? '',
           dataHoraLogin: dados['data_hora'] ?? '',
           tokenAutenticacao: dados['token'] ?? '',
+          email: usuario['email'] ?? '',
+          dataCadastro: usuario['cadastrado_em'] ?? '',
         );
       } catch (_) {
         throw ApiException(ApiErro.servidor, 'Resposta inesperada do servidor.');
@@ -69,6 +72,32 @@ class ApiService {
       throw ApiException(ApiErro.servidor, 'Muitas tentativas. Aguarde um minuto.');
     }
     throw ApiException(ApiErro.servidor, 'Erro no servidor (${resposta.statusCode}).');
+  }
+
+  //GET /api/me: dados atuais do usuário (mantém o token e a data/hora do login)
+  static Future<Autorizacao> perfil(Autorizacao auth) async {
+    final resposta = await _enviar(() => http.get(
+      Uri.parse('${ApiConfig.baseUrl}/me'),
+      headers: ApiConfig.cabecalhos(token: auth.tokenAutenticacao),
+    ));
+
+    _verificarSessao(resposta);
+    if (resposta.statusCode != 200) {
+      throw ApiException(ApiErro.servidor, 'Erro no servidor (${resposta.statusCode}).');
+    }
+
+    try {
+      final usuario = jsonDecode(utf8.decode(resposta.bodyBytes)) as Map<String, dynamic>;
+      return Autorizacao(
+        usuario: usuario['nome'] ?? '',
+        dataHoraLogin: auth.dataHoraLogin,
+        tokenAutenticacao: auth.tokenAutenticacao,
+        email: usuario['email'] ?? '',
+        dataCadastro: usuario['cadastrado_em'] ?? '',
+      );
+    } catch (_) {
+      throw ApiException(ApiErro.servidor, 'Resposta inesperada do servidor.');
+    }
   }
 
   //GET /api/tarefas: todas as tarefas do usuário dono do token

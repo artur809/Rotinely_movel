@@ -1,13 +1,17 @@
-//simulando um login autenticado usando API
+//guarda o login e os dados do perfil do usuário logado
 class Autorizacao {
   final String usuario;
   final String dataHoraLogin;
   final String tokenAutenticacao;
+  final String email;
+  final String dataCadastro;
 
   Autorizacao({
     required this.usuario,
     required this.dataHoraLogin,
     required this.tokenAutenticacao,
+    this.email = '',
+    this.dataCadastro = '',
   });
 
   //converte o objeto para um Map (usado para persistir em JSON)
@@ -16,6 +20,8 @@ class Autorizacao {
       'usuario': usuario,
       'dataHoraLogin': dataHoraLogin,
       'tokenAutenticacao': tokenAutenticacao,
+      'email': email,
+      'dataCadastro': dataCadastro,
     };
   }
 
@@ -25,6 +31,8 @@ class Autorizacao {
       usuario: map['usuario'] ?? '',
       dataHoraLogin: map['dataHoraLogin'] ?? '',
       tokenAutenticacao: map['tokenAutenticacao'] ?? '',
+      email: map['email'] ?? '',
+      dataCadastro: map['dataCadastro'] ?? '',
     );
   }
 }

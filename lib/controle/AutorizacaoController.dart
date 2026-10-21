@@ -28,6 +28,22 @@ class AutorizacaoController {
     return await LocalStorageService.carregarAutorizacao();
   }
 
+  //busca o perfil atualizado no servidor e salva no celular
+  //devolve false só se a sessão expirou (precisa fazer login de novo)
+  //sem internet devolve true: o perfil continua com o que já estava salvo
+  static Future<bool> atualizarPerfil() async {
+    final auth = await LocalStorageService.carregarAutorizacao();
+    if (auth == null) return false;
+
+    try {
+      final atualizada = await ApiService.perfil(auth);
+      await LocalStorageService.salvarAutorizacao(atualizada);
+      return true;
+    } on ApiException catch (e) {
+      return e.tipo != ApiErro.sessaoExpirada;
+    }
+  }
+
   //avisa o servidor (apaga o token lá) e limpa tudo que está salvo no celular
   static Future<void> logout() async {
     Autorizacao? auth = await LocalStorageService.carregarAutorizacao();

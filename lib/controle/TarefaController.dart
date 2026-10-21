@@ -51,13 +51,13 @@ class TarefaController {
   static Future<bool> alternarConcluido(Tarefa tarefa) async {
     final novoValor = !tarefa.concluido;
 
-    //1) muda no celular na hora, a tela responde mesmo sem internet
+    //muda no celular na hora, a tela responde mesmo sem internet
     await atualizarTarefa(tarefa.copiarComConcluido(novoValor));
 
-    //2) anota que falta avisar o servidor
+    //anota que falta avisar o servidor
     await LocalStorageService.registrarPendencia(tarefa.id, novoValor);
 
-    //3) tenta avisar agora; se não der, continua pendente e sai na próxima sincronização
+    //tenta avisar agora e se não der continua pendente e sai na próxima sincronização
     final auth = await LocalStorageService.carregarAutorizacao();
     if (auth == null) return false;
     try {

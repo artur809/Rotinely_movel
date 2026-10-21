@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
+import 'package:rotinely/controle/AutorizacaoController.dart';
+import 'package:rotinely/modelo/objects/Autorizacao.dart';
 import 'package:rotinely/visao/estilos/EstilosTexto.dart';
+import 'package:rotinely/visao/telas/Login.dart' show Login;
 
 class TelaDois extends StatefulWidget {
   const TelaDois({super.key, required this.title});
@@ -14,7 +18,53 @@ class TelaDois extends StatefulWidget {
 
 class _TelaPerfilState extends State<TelaDois> {
 
-  //linha de dado pessoal: rótulo pequeno em cima, valor em baixo
+  //dados do usuário logado (vêm do celular e são atualizados pelo servidor)
+  Autorizacao? _auth;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarPerfil();
+  }
+
+  Future<void> _carregarPerfil() async {
+    //mostra na hora o que está salvo no celular
+    final salvo = await AutorizacaoController.usuarioLogado();
+    if (!mounted) return;
+    setState(() => _auth = salvo);
+
+    //pede ao servidor os dados atuais (o nome ou e-mail pode ter mudado no web)
+    final sessaoValida = await AutorizacaoController.atualizarPerfil();
+    if (!mounted) return;
+
+    //token recusado: limpa tudo e volta para o login
+    if (!sessaoValida) {
+      await AutorizacaoController.logout();
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const Login(title: 'Rotinely')),
+            (rota) => false,
+      );
+      return;
+    }
+
+    //mostra os dados atualizados
+    final atualizado = await AutorizacaoController.usuarioLogado();
+    if (!mounted) return;
+    setState(() => _auth = atualizado);
+  }
+
+  //transforma a data do servidor (2026-10-04T...) em 04/10/2026
+  String _formatarData(String iso) {
+    if (iso.isEmpty) return '-';
+    try {
+      return DateFormat('dd/MM/yyyy').format(DateTime.parse(iso).toLocal());
+    } catch (_) {
+      return '-';
+    }
+  }
+
   Widget _linhaDado(BuildContext context, String rotulo, String valor, IconData icone) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,6 +108,11 @@ class _TelaPerfilState extends State<TelaDois> {
     ]);
     ScreenUtil.init(context, designSize: const Size(750, 1304));
 
+    //dados que aparecem na tela (se ainda não tem, mostra "-")
+    final String nome = _auth?.usuario ?? '';
+    final String email = _auth?.email ?? '';
+    final String inicial = nome.isEmpty ? '?' : nome[0].toUpperCase();
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -70,6 +125,13 @@ class _TelaPerfilState extends State<TelaDois> {
             fontSize: 30,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh, color: Theme.of(context).primaryColorDark),
+            tooltip: 'Atualizar',
+            onPressed: _carregarPerfil,
+          ),
+        ],
       ),
       body: Container(
         height: double.infinity,
@@ -106,7 +168,7 @@ class _TelaPerfilState extends State<TelaDois> {
                       radius: 50,
                       backgroundColor: Theme.of(context).primaryColorDark,
                       child: Text(
-                        'A',
+                        inicial,
                         style: TextStyle(fontSize: 40, color: Colors.white, fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -140,11 +202,11 @@ class _TelaPerfilState extends State<TelaDois> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _linhaDado(context, Internacionalizacao.labelNome, 'Artur Ribeiro', Icons.person_outline),
+                      _linhaDado(context, Internacionalizacao.labelNome, nome.isEmpty ? '-' : nome, Icons.person_outline),
                       SizedBox(height: 18),
-                      _linhaDado(context, Internacionalizacao.labelEmail, 'arturribeiroalmeida2009@gmail.com', Icons.email_outlined),
+                      _linhaDado(context, Internacionalizacao.labelEmail, email.isEmpty ? '-' : email, Icons.email_outlined),
                       SizedBox(height: 18),
-                      _linhaDado(context, Internacionalizacao.labelMembro, '04/10/2026', Icons.calendar_today_outlined),
+                      _linhaDado(context, Internacionalizacao.labelMembro, _formatarData(_auth?.dataCadastro ?? ''), Icons.calendar_today_outlined),
                     ],
                   ),
                 ),

@@ -181,6 +181,8 @@ class _LoginState extends State<Login> {
     return Scaffold(
         resizeToAvoidBottomInset: true,
         body: Container(
+          width: double.infinity,
+          height: double.infinity,
           decoration: BoxDecoration(
               gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -189,33 +191,36 @@ class _LoginState extends State<Login> {
                     Theme.of(context).primaryColor,
                     Theme.of(context).primaryColorLight
                   ])),
-          child: Padding(
-            padding: EdgeInsets.only(top: 40.0),
-            child: Column(
-              children: <Widget>[
-                Container(
-                  child: Padding(
-                      padding: EdgeInsets.only(top: 20.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Text(Internacionalizacao.logoTitle, style: EstilosTextosCustomizado.title(context)),
-                          Icon(Icons.task_alt, color: Colors.white, size: 48),
-                        ],
-                      )),
-                  width: ScreenUtil().setWidth(750),
-                  height: ScreenUtil().setHeight(190),
-                ),
-                SizedBox(height: ScreenUtil().setHeight(60)),
-                SizedBox(height: ScreenUtil().setHeight(5)),
-                Container(
-                  child: Padding(
-                      padding: EdgeInsets.only(left: 30.0, right: 30.0),
-                      child: _showEntrar(context)),
-                  width: ScreenUtil().setWidth(750),
-                  height: ScreenUtil().setHeight(778),
-                ),
-              ],
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            child: Padding(
+              padding: EdgeInsets.only(top: 40.0),
+              child: Column(
+                children: <Widget>[
+                  Container(
+                    child: Padding(
+                        padding: EdgeInsets.only(top: 20.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Text(Internacionalizacao.logoTitle, style: EstilosTextosCustomizado.title(context)),
+                            Icon(Icons.task_alt, color: Colors.white, size: 48),
+                          ],
+                        )),
+                    width: ScreenUtil().setWidth(750),
+                    height: ScreenUtil().setHeight(190),
+                  ),
+                  SizedBox(height: ScreenUtil().setHeight(60)),
+                  SizedBox(height: ScreenUtil().setHeight(5)),
+                  Container(
+                    child: Padding(
+                        padding: EdgeInsets.only(left: 30.0, right: 30.0),
+                        child: _showEntrar(context)),
+                    width: ScreenUtil().setWidth(750),
+                    height: ScreenUtil().setHeight(778),
+                  ),
+                ],
+              ),
             ),
           ),
         )
