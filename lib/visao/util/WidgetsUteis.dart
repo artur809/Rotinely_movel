@@ -106,18 +106,18 @@ class WidgetsUteis{
   }){
     return ElevatedButton(
       style: TextButton.styleFrom(
-          padding: EdgeInsets.all(12),
-          elevation: 2,
-          shadowColor: Color.fromRGBO(11, 94, 215, 1.0),
-          shape: RoundedRectangleBorder(
-              side: BorderSide(
-                color: Color.fromRGBO(85, 63, 48, 1.0),
-                width: 1,
-                //strokeAlign: StrokeAlign.outside
-              ),
-              borderRadius: BorderRadius.circular(12)
-          ),
-          backgroundColor: Color.fromRGBO(11, 94, 215, 1.0),
+        padding: EdgeInsets.all(12),
+        elevation: 2,
+        shadowColor: Color.fromRGBO(11, 94, 215, 1.0),
+        shape: RoundedRectangleBorder(
+            side: BorderSide(
+              color: Color.fromRGBO(85, 63, 48, 1.0),
+              width: 1,
+              //strokeAlign: StrokeAlign.outside
+            ),
+            borderRadius: BorderRadius.circular(12)
+        ),
+        backgroundColor: Color.fromRGBO(11, 94, 215, 1.0),
       ),
       onPressed: () {
         executa(context);
@@ -136,40 +136,113 @@ class WidgetsUteis{
       ),
     );
   }
+
   ListView listaTarefas(context, List<Tarefa> lista, {Function(Tarefa item)? aoTocarConcluido}){
-    return ListView.builder(
+    return ListView.separated(
+      padding: EdgeInsets.symmetric(vertical: 4),
       itemCount: lista.length,
+      separatorBuilder: (context, index) => SizedBox(height: 10),
       itemBuilder: (BuildContext context, int index) {
-        return ListTile(
-          titleTextStyle: EstilosTextosCustomizado.subTitle(context),
-          subtitleTextStyle: EstilosTextosCustomizado.formField2(context),
-          leading: CircleAvatar(
-            backgroundColor: Colors.white70,
-            child: Icon(Icons.task, color: Colors.blueGrey),
-          ),
-          title: Text(lista[index].categoria, style: EstilosTextosCustomizado.formField2(context)),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(lista[index].tituloT),
-              Text(lista[index].descricao, style: EstilosTextosCustomizado.formField2(context)),
-            ],
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(lista[index].prioridade, style: EstilosTextosCustomizado.formField2(context)),
-              Checkbox(
-                value: lista[index].concluido,
-                onChanged: (value) {
-                  if (aoTocarConcluido != null) aoTocarConcluido(lista[index]);
-                },
+        final tarefa = lista[index];
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 8,
+                offset: Offset(0, 3),
               ),
             ],
+          ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Theme.of(context).primaryColorLight,
+                  child: Icon(
+                    Icons.task_alt_outlined,
+                    color: Theme.of(context).primaryColorDark,
+                    size: 20,
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        tarefa.categoria.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).primaryColorDark,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        tarefa.tituloT,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: tarefa.concluido ? Colors.black38 : Colors.black87,
+                        ),
+                      ),
+                      if (tarefa.descricao.isNotEmpty) ...[
+                        SizedBox(height: 2),
+                        Text(
+                          tarefa.descricao,
+                          style: TextStyle(fontSize: 13, color: Colors.black54),
+                        ),
+                      ],
+                      SizedBox(height: 8),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: _corPrioridade(tarefa.prioridade).withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          tarefa.prioridade,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: _corPrioridade(tarefa.prioridade),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Checkbox(
+                  value: tarefa.concluido,
+                  activeColor: Theme.of(context).primaryColor,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                  onChanged: (value) {
+                    if (aoTocarConcluido != null) aoTocarConcluido(tarefa);
+                  },
+                ),
+              ],
+            ),
           ),
         );
       },
     );
+  }
+
+  Color _corPrioridade(String prioridade) {
+    switch (prioridade.toLowerCase()) {
+      case 'alta': return Color(0xFFDC2626);
+      case 'média':
+      case 'media': return Color(0xFFD97706);
+      case 'baixa': return Color(0xFF16A34A);
+      default: return Colors.grey;
+    }
   }
 
   Widget barraCircularProgresso() {

@@ -1,44 +1,85 @@
-import 'package:rotinely/modelo/objects/Tarefa.dart';
+import 'package:rotinely/modelo/ApiService.dart';
 import 'package:rotinely/modelo/LocalStorageService.dart';
+import 'package:rotinely/modelo/objects/Tarefa.dart';
+
+//o que a tela recebe depois de tentar sincronizar com o servidor
+class ResultadoTarefas {
+  final List<Tarefa> tarefas;
+  final bool offline; //true = não conseguiu falar com o servidor, mostrou a cópia do celular
+  final bool sessaoExpirada; //true = precisa fazer login de novo
+
+  ResultadoTarefas(this.tarefas, {this.offline = false, this.sessaoExpirada = false});
+}
 
 class TarefaController {
 
-  //lista inicial(depois vou pegar da API do meu web)
-  static final List<Tarefa> _tarefasIniciais = [
-    Tarefa(id: '1', tituloT: 'Fazer compras', descricao: 'Ir ao mercado', prioridade: 'alta', categoria: 'Compras', concluido: false),
-    Tarefa(id: '2', tituloT: 'Estudar Flutter', descricao: 'Revisar widgets', prioridade: 'alta', categoria: 'Estudos', concluido: false),
-    Tarefa(id: '3', tituloT: 'Jogar futebol', descricao: 'Segunda as 18h', prioridade: 'média', categoria: 'Pessoal & Lazer', concluido: false),
-    Tarefa(id: '4', tituloT: 'Reunião', descricao: 'Reunião às 14h', prioridade: 'alta', categoria: 'Trabalho', concluido: false),
-    Tarefa(id: '5', tituloT: 'Caminhar', descricao: '', prioridade: 'baixa', categoria: 'Saúde', concluido: false),
-    Tarefa(id: '6', tituloT: 'viagem', descricao: 'Viagem marcada pro dia 25 de abril', prioridade: 'alta', categoria: 'Pessoal & Lazer', concluido: false),
-    Tarefa(id: '7', tituloT: 'entrega de trabalho', descricao: 'Entregar até dia 22', prioridade: 'alta', categoria: 'Estudos', concluido: false),
-  ];
-
+  //devolve só o que está salvo no celular (rápido, funciona sem internet)
   static Future<List<Tarefa>> listarTarefas() async {
-    List<Tarefa> lista = await LocalStorageService.carregarTarefas();
-    if (lista.isEmpty) {
-      await LocalStorageService.salvarTarefas(_tarefasIniciais);
-      return _tarefasIniciais;
-    }
-    return lista;
+    return await LocalStorageService.carregarTarefas();
   }
 
-  static Future<void> alternarConcluido(Tarefa tarefa) async {
-    Tarefa tarefaAtualizada;
-    if (tarefa.concluido) {
-      tarefaAtualizada = Tarefa(
-        id: tarefa.id, tituloT: tarefa.tituloT, descricao: tarefa.descricao,
-        prioridade: tarefa.prioridade, categoria: tarefa.categoria,
-        concluido: false,
-      );
-    } else {
-      tarefaAtualizada = Tarefa(
-        id: tarefa.id, tituloT: tarefa.tituloT, descricao: tarefa.descricao,
-        prioridade: tarefa.prioridade, categoria: tarefa.categoria,
-        concluido: true,
+  //envia as mudanças pendentes, busca a lista nova no servidor e guarda no celular
+  static Future<ResultadoTarefas> sincronizar() async {
+    final auth = await LocalStorageService.carregarAutorizacao();
+    if (auth == null) {
+      return ResultadoTarefas(await listarTarefas(), sessaoExpirada: true);
+    }
+
+    try {
+      await _enviarPendencias(auth.tokenAutenticacao);
+      final doServidor = await ApiService.buscarTarefas(auth.tokenAutenticacao);
+
+      //se sobrou alguma mudança pendente (feita enquanto sincronizava), ela vale mais que o servidor
+      final pendentes = await LocalStorageService.carregarPendencias();
+      final lista = doServidor
+          .map((t) => pendentes.containsKey(t.id) ? t.copiarComConcluido(pendentes[t.id]!) : t)
+          .toList();
+
+      await LocalStorageService.salvarTarefas(lista);
+      return ResultadoTarefas(lista);
+    } on ApiException catch (e) {
+      return ResultadoTarefas(
+        await listarTarefas(),
+        offline: e.tipo != ApiErro.sessaoExpirada,
+        sessaoExpirada: e.tipo == ApiErro.sessaoExpirada,
       );
     }
-    await atualizarTarefa(tarefaAtualizada);
+  }
+
+  //marca/desmarca como concluída
+  //devolve true se o servidor já recebeu, false se ficou pendente (sem conexão)
+  static Future<bool> alternarConcluido(Tarefa tarefa) async {
+    final novoValor = !tarefa.concluido;
+
+    //1) muda no celular na hora, a tela responde mesmo sem internet
+    await atualizarTarefa(tarefa.copiarComConcluido(novoValor));
+
+    //2) anota que falta avisar o servidor
+    await LocalStorageService.registrarPendencia(tarefa.id, novoValor);
+
+    //3) tenta avisar agora; se não der, continua pendente e sai na próxima sincronização
+    final auth = await LocalStorageService.carregarAutorizacao();
+    if (auth == null) return false;
+    try {
+      await _enviarPendencias(auth.tokenAutenticacao);
+      return true;
+    } on ApiException {
+      return false;
+    }
+  }
+
+  //manda para o servidor cada mudança pendente, uma por uma
+  static Future<void> _enviarPendencias(String token) async {
+    final pendentes = await LocalStorageService.carregarPendencias();
+    for (final entrada in pendentes.entries) {
+      try {
+        await ApiService.atualizarStatus(token, entrada.key, entrada.value);
+      } on ApiException catch (e) {
+        //404: a tarefa foi apagada no web, então a mudança não vale mais
+        if (e.tipo != ApiErro.naoEncontrado) rethrow;
+      }
+      await LocalStorageService.removerPendencia(entrada.key, entrada.value);
+    }
   }
 
   static Future<void> atualizarTarefa(Tarefa tarefa) async {

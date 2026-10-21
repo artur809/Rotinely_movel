@@ -13,6 +13,43 @@ class TelaDois extends StatefulWidget {
 }
 
 class _TelaPerfilState extends State<TelaDois> {
+
+  //linha de dado pessoal: rótulo pequeno em cima, valor em baixo
+  Widget _linhaDado(BuildContext context, String rotulo, String valor, IconData icone) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          radius: 16,
+          backgroundColor: Theme.of(context).primaryColorLight,
+          child: Icon(icone, size: 16, color: Theme.of(context).primaryColorDark),
+        ),
+        SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                rotulo.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColorDark,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              SizedBox(height: 2),
+              Text(
+                valor,
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black87),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([
@@ -52,40 +89,62 @@ class _TelaPerfilState extends State<TelaDois> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                SizedBox(height: 8),
                 Center(
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.green,
-                    child: Text(
-                      'A',
-                      style: TextStyle(fontSize: 40, color: Colors.white),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.12),
+                          blurRadius: 12,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Theme.of(context).primaryColorDark,
+                      child: Text(
+                        'A',
+                        style: TextStyle(fontSize: 40, color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                 ),
                 SizedBox(height: 24),
-                Text(Internacionalizacao.dadosPessoais, style: EstilosTextosCustomizado.subTitle(context)),
-                SizedBox(height: 8),
+                Text(
+                  Internacionalizacao.dadosPessoais.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black54,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                SizedBox(height: 10),
                 Container(
                   width: double.infinity,
-                  padding: EdgeInsets.all(16),
+                  padding: EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.06),
+                        blurRadius: 8,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(Internacionalizacao.labelNome, style: EstilosTextosCustomizado.formField2(context)),
-                      SizedBox(height: 4),
-                      Text('Artur Ribeiro', style: EstilosTextosCustomizado.subTitle(context)),
-                      SizedBox(height: 16),
-                      Text(Internacionalizacao.labelEmail, style: EstilosTextosCustomizado.formField2(context)),
-                      SizedBox(height: 4),
-                      Text('arturribeiroalmeida2009@gmail.com', style: EstilosTextosCustomizado.subTitle(context)),
-                      SizedBox(height: 16),
-                      Text(Internacionalizacao.labelMembro, style: EstilosTextosCustomizado.formField2(context)),
-                      SizedBox(height: 4),
-                      Text('24/04/2026', style: EstilosTextosCustomizado.subTitle(context)),
+                      _linhaDado(context, Internacionalizacao.labelNome, 'Artur Ribeiro', Icons.person_outline),
+                      SizedBox(height: 18),
+                      _linhaDado(context, Internacionalizacao.labelEmail, 'arturribeiroalmeida2009@gmail.com', Icons.email_outlined),
+                      SizedBox(height: 18),
+                      _linhaDado(context, Internacionalizacao.labelMembro, '04/10/2026', Icons.calendar_today_outlined),
                     ],
                   ),
                 ),

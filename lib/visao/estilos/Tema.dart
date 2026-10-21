@@ -7,9 +7,9 @@ ThemeData temaEscuro() {
   );
   return baseTheme.copyWith(
     brightness: Brightness.dark,
-    primaryColor: Color(0xFF16A34A),
-    primaryColorLight: Color(0xFFDCFCE7),
-    primaryColorDark: Color(0xFF15803D),
+    primaryColor: Color(0xFF1668A3),
+    primaryColorLight: Color(0xFFB7D7DC),
+    primaryColorDark: Color(0xFF154B80),
     highlightColor: Colors.white,
     //primaryColorBrightness: Brightness.dark,
     //accentColor: Colors.white,

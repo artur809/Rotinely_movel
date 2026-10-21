@@ -1,22 +1,21 @@
+import 'package:rotinely/modelo/ApiService.dart';
 import 'package:rotinely/modelo/LocalStorageService.dart';
 import 'package:rotinely/modelo/objects/Autorizacao.dart';
 
 class AutorizacaoController {
 
-  //Simula a chamada a uma API de login e devolve um objeto com usuário, dataHora e token
-  static Future<bool> verificaAutorizacaoOnline(String usuario, String senha) async {
-    await Future.delayed(Duration(milliseconds: 600)); //simula um delay de rede
-
-    if (usuario.trim().isNotEmpty && senha.trim().isNotEmpty) {
-      Autorizacao authRetornoApi = Autorizacao(
-        usuario: usuario,
-        dataHoraLogin: DateTime.now().toIso8601String(),
-        tokenAutenticacao: 'TOKEN-${DateTime.now().millisecondsSinceEpoch}',
-      );
+  //faz o login na API do web
+  //devolve null se deu certo, ou a mensagem de erro para mostrar na tela
+  static Future<String?> verificaAutorizacaoOnline(String email, String senha) async {
+    try {
+      Autorizacao authRetornoApi = await ApiService.login(email.trim(), senha);
+      //limpa o que ficou salvo de antes (tarefas de outro usuário, dados de teste)
+      await LocalStorageService.limparTarefas();
       await LocalStorageService.salvarAutorizacao(authRetornoApi);
-      return true;
+      return null;
+    } on ApiException catch (e) {
+      return e.mensagem;
     }
-    return false;
   }
 
   //verifica se já existe login salvo no dispositivo (uso offline)
@@ -29,7 +28,13 @@ class AutorizacaoController {
     return await LocalStorageService.carregarAutorizacao();
   }
 
+  //avisa o servidor (apaga o token lá) e limpa tudo que está salvo no celular
   static Future<void> logout() async {
+    Autorizacao? auth = await LocalStorageService.carregarAutorizacao();
+    if (auth != null) {
+      await ApiService.logout(auth.tokenAutenticacao);
+    }
     await LocalStorageService.desgravarAutorizacao();
+    await LocalStorageService.limparTarefas();
   }
 }

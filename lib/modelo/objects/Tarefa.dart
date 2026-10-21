@@ -6,7 +6,8 @@ class Tarefa {
   final String tituloT;
   final String descricao;
   final String prioridade;
-  final String categoria;
+  final String categoria; //nomes das categorias juntos (para mostrar na tela)
+  final List<String> categorias; //cada categoria separada (para o filtro)
   final bool concluido;
 
   Tarefa({
@@ -16,7 +17,21 @@ class Tarefa {
     required this.prioridade,
     required this.concluido,
     required this.categoria,
+    this.categorias = const [],
   });
+
+  //devolve uma cópia da tarefa só com o campo concluido trocado
+  Tarefa copiarComConcluido(bool novoValor) {
+    return Tarefa(
+      id: id,
+      tituloT: tituloT,
+      descricao: descricao,
+      prioridade: prioridade,
+      categoria: categoria,
+      categorias: categorias,
+      concluido: novoValor,
+    );
+  }
 
   // Converte o objeto para um Map
   Map<String, dynamic> toMap() {
@@ -26,19 +41,45 @@ class Tarefa {
       'descricao': descricao,
       'prioridade': prioridade,
       'categoria': categoria,
+      'categorias': categorias,
       'concluido': concluido,
     };
   }
 
-  // Cria um objeto a partir de um Map
+  // Cria um objeto a partir de um Map (dados salvos no celular)
   factory Tarefa.fromMap(Map<String, dynamic> map) {
+    final String categoria = map['categoria'] ?? '';
+    final List<String> categorias = map['categorias'] != null
+        ? List<String>.from(map['categorias'])
+        : (categoria.isEmpty ? <String>[] : <String>[categoria]);
+
     return Tarefa(
       id: map['id'].toString(),
       tituloT: map['titulo'] ?? '',
       descricao: map['descricao'] ?? '',
       prioridade: map['prioridade'] ?? '',
-      categoria: map['categoria'] ?? '',
+      categoria: categoria,
+      categorias: categorias,
       concluido: map['concluido'] ?? false,
+    );
+  }
+
+  // Cria um objeto a partir do JSON que vem da API do web
+  factory Tarefa.fromApi(Map<String, dynamic> map) {
+    final List<String> nomes = (map['categorias'] as List<dynamic>? ?? [])
+        .map((c) => (c as Map<String, dynamic>)['nome'].toString())
+        .toList();
+    final String prioridade = (map['prioridade'] ?? '').toString();
+
+    return Tarefa(
+      id: map['id'].toString(),
+      tituloT: map['titulo'] ?? '',
+      descricao: map['descricao'] ?? '', //o web pode mandar null
+      //o web manda "media" (sem acento); o app usa "média"
+      prioridade: prioridade == 'media' ? 'média' : prioridade,
+      categoria: nomes.join(', '),
+      categorias: nomes,
+      concluido: map['status'] == 'concluida',
     );
   }
 
