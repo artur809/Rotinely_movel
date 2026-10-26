@@ -23,14 +23,12 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
 
-  //true enquanto espera a resposta do servidor
   bool _entrando = false;
 
   Future<void> _realizarLogin(context) async {
     final usuario = _emailController.text.trim();
     final senha = _passwordController.text;
 
-    //não deixa logar com campos vazios
     if (usuario.isEmpty || senha.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Informe e-mail e senha para continuar.')),
@@ -38,7 +36,6 @@ class _LoginState extends State<Login> {
       return;
     }
 
-    //senha precisa ter pelo menos 8 caracteres
     if (senha.trim().length < 8) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('A senha deve ter pelo menos 8 caracteres.')),
@@ -47,7 +44,6 @@ class _LoginState extends State<Login> {
     }
 
     setState(() => _entrando = true);
-    //devolve null se deu certo, ou a mensagem de erro
     final erro = await AutorizacaoController.verificaAutorizacaoOnline(usuario, senha);
     if (!mounted) return;
     setState(() => _entrando = false);
@@ -67,7 +63,6 @@ class _LoginState extends State<Login> {
     }
   }
 
-  //card branco com ícone + campo de texto
   Widget _campoTexto({
     required BuildContext context,
     required TextEditingController controller,
@@ -101,8 +96,6 @@ class _LoginState extends State<Login> {
       ),
     );
   }
-
-  //widget painel entrar
   Widget _showEntrar(context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -143,7 +136,6 @@ class _LoginState extends State<Login> {
               ),
               elevation: 0,
             ),
-            //desativa o botão enquanto espera o servidor
             onPressed: _entrando ? null : () => _realizarLogin(context),
             child: _entrando
                 ? SizedBox(

@@ -4,10 +4,8 @@ import 'package:rotinely/modelo/ApiConfig.dart';
 import 'package:rotinely/modelo/objects/Autorizacao.dart';
 import 'package:rotinely/modelo/objects/Tarefa.dart';
 
-//tipos de problema que podem acontecer na conversa com a API
 enum ApiErro { semConexao, sessaoExpirada, credenciaisInvalidas, naoEncontrado, servidor }
 
-//erro com um tipo (para o app decidir o que fazer) e uma mensagem (para mostrar ao usuário)
 class ApiException implements Exception {
   final ApiErro tipo;
   final String mensagem;
@@ -18,12 +16,9 @@ class ApiException implements Exception {
   String toString() => mensagem;
 }
 
-//toda a comunicação com a API do web fica aqui
 class ApiService {
-  //se o servidor não responder em 15 segundos, considera que está sem conexão
   static const Duration _tempoLimite = Duration(seconds: 15);
 
-  //faz a chamada e transforma qualquer falha de rede em ApiException
   static Future<http.Response> _enviar(Future<http.Response> Function() chamada) async {
     try {
       return await chamada().timeout(_tempoLimite);
@@ -32,14 +27,12 @@ class ApiService {
     }
   }
 
-  //se o servidor recusou o token, a sessão acabou
   static void _verificarSessao(http.Response resposta) {
     if (resposta.statusCode == 401) {
       throw ApiException(ApiErro.sessaoExpirada, 'Sessão expirada. Entre novamente.');
     }
   }
 
-  //POST /api/login: devolve a Autorizacao com nome, e-mail, data de cadastro, data/hora e token
   static Future<Autorizacao> login(String email, String senha) async {
     final resposta = await _enviar(() => http.post(
       Uri.parse('${ApiConfig.baseUrl}/login'),
@@ -74,7 +67,6 @@ class ApiService {
     throw ApiException(ApiErro.servidor, 'Erro no servidor (${resposta.statusCode}).');
   }
 
-  //GET /api/me: dados atuais do usuário (mantém o token e a data/hora do login)
   static Future<Autorizacao> perfil(Autorizacao auth) async {
     final resposta = await _enviar(() => http.get(
       Uri.parse('${ApiConfig.baseUrl}/me'),
@@ -100,7 +92,6 @@ class ApiService {
     }
   }
 
-  //GET /api/tarefas: todas as tarefas do usuário dono do token
   static Future<List<Tarefa>> buscarTarefas(String token) async {
     final resposta = await _enviar(() => http.get(
       Uri.parse('${ApiConfig.baseUrl}/tarefas'),
@@ -120,7 +111,6 @@ class ApiService {
     }
   }
 
-  //PATCH /api/tarefas/{id}/status: manda o estado desejado (concluída ou pendente)
   static Future<void> atualizarStatus(String token, String id, bool concluido) async {
     final resposta = await _enviar(() => http.patch(
       Uri.parse('${ApiConfig.baseUrl}/tarefas/$id/status'),
@@ -137,7 +127,6 @@ class ApiService {
     }
   }
 
-  //POST /api/logout: apaga o token no servidor (se não conseguir, não faz mal)
   static Future<void> logout(String token) async {
     try {
       await http
@@ -147,7 +136,6 @@ class ApiService {
       )
           .timeout(const Duration(seconds: 5));
     } catch (_) {
-      //sem internet: o logout local acontece do mesmo jeito
     }
   }
 }

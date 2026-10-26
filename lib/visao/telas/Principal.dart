@@ -13,7 +13,6 @@ class Principal extends StatefulWidget {
 }
 class _PrincipalState extends State<Principal> {
 
-  //construção da estrutura
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,9 +21,6 @@ class _PrincipalState extends State<Principal> {
         bottomNavigationBar: _bottomNavigationBar()
     );
   }
-
-  /////////////////////////
-  //variáveis
   int _currentIndex = 0;
 
   List<Widget> _screens = [
@@ -37,33 +33,30 @@ class _PrincipalState extends State<Principal> {
   void initState() {
     _currentIndex = 0;
   }
-  //////////////////////////
-  //widgets
-  //barra de títulos
   AppBar _appBar(){
     return AppBar(
       title: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                Internacionalizacao.titulo,
-                style: GoogleFonts.cormorantGaramond(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  fontSize: 30,
-                ),
-              ),
-              Icon(
-                  Icons.task_alt,
-                  color: Colors.white,
-                  size: 30,
-                ),
-            ],
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            Internacionalizacao.titulo,
+            style: GoogleFonts.cormorantGaramond(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 30,
+            ),
           ),
+          Icon(
+            Icons.task_alt,
+            color: Colors.white,
+            size: 30,
+          ),
+        ],
+      ),
       backgroundColor: Theme.of(context).primaryColorDark,
       actions: [
         IconButton(
-          icon: Icon(Icons.exit_to_app),
+          icon: Icon(Icons.exit_to_app, color: Colors.white),
           onPressed: () async {
             await AutorizacaoController.logout();
             if (!context.mounted) return;
@@ -77,14 +70,13 @@ class _PrincipalState extends State<Principal> {
       ],
     );
   }
-  //barra de menu
   BottomNavigationBar _bottomNavigationBar(){
     return BottomNavigationBar(
       backgroundColor: Theme.of(context).primaryColorLight,
       currentIndex: _currentIndex!,
       onTap: (index) {
         setState(() {
-          _currentIndex = index; // Atualiza o índice
+          _currentIndex = index;
         });
       },
       items: [
@@ -107,4 +99,3 @@ class Internacionalizacao {
   static String titulo = "ROTINELY";
 
 }
-

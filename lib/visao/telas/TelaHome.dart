@@ -20,16 +20,9 @@ class TelaUm extends StatefulWidget {
 
 class _TelaHomeState extends State<TelaUm> {
 
-  //lista de tarefas carregada do armazenamento local
   List<Tarefa> _tarefas = [];
-
-  //categoria selecionada no filtro (dropdown)
   String _categoriaSelecionada = 'Todas';
-
-  //busca as novidades do web de tempos em tempos
   Timer? _temporizador;
-
-  //evita duas sincronizações ao mesmo tempo
   bool _sincronizando = false;
 
   @override
@@ -37,7 +30,6 @@ class _TelaHomeState extends State<TelaUm> {
     super.initState();
     _mostrarTarefasSalvas();
     _sincronizar();
-    //enquanto a tela estiver aberta, busca as novidades do web a cada 30 segundos
     _temporizador = Timer.periodic(
       const Duration(seconds: 30),
           (_) => _sincronizar(silencioso: true),
@@ -50,15 +42,12 @@ class _TelaHomeState extends State<TelaUm> {
     super.dispose();
   }
 
-  //mostra na hora o que está salvo no celular
   Future<void> _mostrarTarefasSalvas() async {
     final dados = await TarefaController.listarTarefas();
     if (!mounted) return;
     setState(() => _tarefas = dados);
   }
 
-  //envia o que está pendente, busca as tarefas do servidor e atualiza a tela
-  //silencioso = true não mostra aviso de "sem conexão" (usado na busca automática)
   Future<void> _sincronizar({bool silencioso = false}) async {
     if (_sincronizando) return;
     _sincronizando = true;
@@ -71,7 +60,6 @@ class _TelaHomeState extends State<TelaUm> {
     }
     if (!mounted) return;
 
-    //token recusado: limpa tudo e volta para o login
     if (resultado.sessaoExpirada) {
       await AutorizacaoController.logout();
       if (!mounted) return;
@@ -92,7 +80,6 @@ class _TelaHomeState extends State<TelaUm> {
     }
   }
 
-  //chamado quando o usuário toca no checkbox de uma tarefa
   Future<void> _tocarConcluido(Tarefa item) async {
     final enviado = await TarefaController.alternarConcluido(item);
     await _mostrarTarefasSalvas();
@@ -103,7 +90,6 @@ class _TelaHomeState extends State<TelaUm> {
     }
   }
 
-  //retorna só as tarefas da categoria escolhida no filtro
   List<Tarefa> get _tarefasFiltradas {
     if (_categoriaSelecionada == 'Todas') return _tarefas;
     return _tarefas.where((t) => t.categorias.contains(_categoriaSelecionada)).toList();

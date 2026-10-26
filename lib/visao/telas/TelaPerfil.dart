@@ -17,8 +17,6 @@ class TelaDois extends StatefulWidget {
 }
 
 class _TelaPerfilState extends State<TelaDois> {
-
-  //dados do usuário logado (vêm do celular e são atualizados pelo servidor)
   Autorizacao? _auth;
 
   @override
@@ -28,16 +26,12 @@ class _TelaPerfilState extends State<TelaDois> {
   }
 
   Future<void> _carregarPerfil() async {
-    //mostra na hora o que está salvo no celular
     final salvo = await AutorizacaoController.usuarioLogado();
     if (!mounted) return;
     setState(() => _auth = salvo);
-
-    //pede ao servidor os dados atuais (o nome ou e-mail pode ter mudado no web)
     final sessaoValida = await AutorizacaoController.atualizarPerfil();
     if (!mounted) return;
 
-    //token recusado: limpa tudo e volta para o login
     if (!sessaoValida) {
       await AutorizacaoController.logout();
       if (!mounted) return;
@@ -49,13 +43,11 @@ class _TelaPerfilState extends State<TelaDois> {
       return;
     }
 
-    //mostra os dados atualizados
     final atualizado = await AutorizacaoController.usuarioLogado();
     if (!mounted) return;
     setState(() => _auth = atualizado);
   }
 
-  //transforma a data do servidor (2026-10-04T...) em 04/10/2026
   String _formatarData(String iso) {
     if (iso.isEmpty) return '-';
     try {
@@ -108,7 +100,6 @@ class _TelaPerfilState extends State<TelaDois> {
     ]);
     ScreenUtil.init(context, designSize: const Size(750, 1304));
 
-    //dados que aparecem na tela (se ainda não tem, mostra "-")
     final String nome = _auth?.usuario ?? '';
     final String email = _auth?.email ?? '';
     final String inicial = nome.isEmpty ? '?' : nome[0].toUpperCase();
